@@ -9,16 +9,11 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import com.example.mymarvelapp.network.interactor.FetchCharactersInteractor
 import kotlinx.coroutines.*
-import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 import java.math.BigInteger
 import java.security.MessageDigest
 
-
-private const val URL = "https://gateway.marvel.com"
 private const val PUBLIC_KEY = "56648a248c17e14c8b3cf59d293b99b8"
 private const val PRIVATE_KEY = "b5860460de0f24c1191329c107b7f5c3109a1bb2"
 
@@ -29,12 +24,15 @@ class HomeActivity : AppCompatActivity() {
     private lateinit var swipeRefresh: SwipeRefreshLayout
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: CharacterAdapter
-    private lateinit var marvelAPI: MarvelAPI
+    private lateinit var fetchCharactersInteractor: FetchCharactersInteractor
 
     private var isDataLoaded = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        fetchCharactersInteractor = FetchCharactersInteractor()
+
         setContentView(R.layout.layout_questions_list)
 
         // init pull-down-to-refresh
@@ -48,19 +46,6 @@ class HomeActivity : AppCompatActivity() {
         recyclerView.layoutManager = LinearLayoutManager(this)
         adapter = CharacterAdapter()
         recyclerView.adapter = adapter
-
-        // init retrofit
-
-        val interceptor = HttpLoggingInterceptor()
-        interceptor.setLevel(HttpLoggingInterceptor.Level.BODY)
-        val client = OkHttpClient.Builder().addInterceptor(interceptor).build()
-
-        val retrofit = Retrofit.Builder()
-            .baseUrl(URL)
-            .client(client)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-        marvelAPI = retrofit.create(MarvelAPI::class.java)
     }
 
     override fun onStart() {
@@ -78,25 +63,20 @@ class HomeActivity : AppCompatActivity() {
     private fun fetchQuestions() {
         coroutineScope.launch {
             showProgressIndication()
-            try {
-                val timeStamp = getTimeStamp()
-                val response = marvelAPI.getCharacters(
-                    timeStamp = timeStamp,
-                    apiKey = PUBLIC_KEY,
-                    hash = md5(timeStamp))
-                if (response.isSuccessful && response.body() != null) {
-                    adapter.bindData(response.body()?.data?.characters ?: listOf())
-                    isDataLoaded = true
-                } else {
+            val timeStamp = getTimeStamp()
+            fetchCharactersInteractor.fetchCharacters(
+                timeStamp = timeStamp,
+                hashData = md5(timeStamp),
+                onComplete = {
+                    hideProgressIndication()
+                },
+                onSuccess = { result ->
+                    adapter.bindData(result.characters ?: listOf())
+                },
+                onFailure = {
                     onFetchFailed()
                 }
-            } catch (t: Throwable) {
-                if (t !is CancellationException) {
-                    onFetchFailed()
-                }
-            } finally {
-                hideProgressIndication()
-            }
+            )
         }
     }
 
@@ -114,7 +94,7 @@ class HomeActivity : AppCompatActivity() {
         }
     }
 
-    private fun getTimeStamp() = (System.currentTimeMillis()/1000).toString()
+    private fun getTimeStamp() = (System.currentTimeMillis() / 1000).toString()
 
     private fun md5(timeStamp: String): String {
         val inputHash = timeStamp + PRIVATE_KEY + PUBLIC_KEY
