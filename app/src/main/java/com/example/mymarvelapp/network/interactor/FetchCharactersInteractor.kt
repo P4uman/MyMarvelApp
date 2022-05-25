@@ -1,6 +1,6 @@
 package com.example.mymarvelapp.network.interactor
 
-import com.example.mymarvelapp.CharacterDataListEntity
+import com.example.mymarvelapp.network.entity.CharacterDataListEntity
 import com.example.mymarvelapp.MarvelAPI
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

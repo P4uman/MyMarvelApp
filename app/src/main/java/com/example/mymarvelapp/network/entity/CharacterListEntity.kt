@@ -1,4 +1,4 @@
-package com.example.mymarvelapp
+package com.example.mymarvelapp.network.entity
 
 import com.google.gson.annotations.SerializedName
 

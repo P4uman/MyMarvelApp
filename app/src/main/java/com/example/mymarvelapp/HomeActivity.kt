@@ -9,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import com.example.mymarvelapp.network.entity.CharacterEntity
 import com.example.mymarvelapp.network.interactor.FetchCharactersInteractor
 import kotlinx.coroutines.*
 import java.math.BigInteger

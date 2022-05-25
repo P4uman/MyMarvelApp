@@ -1,5 +1,6 @@
 package com.example.mymarvelapp
 
+import com.example.mymarvelapp.network.entity.CharacterListEntity
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Query
