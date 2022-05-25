@@ -8,6 +8,8 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
+    <color name="background_disabled">#33242442</color>
+
     <color name="colorPrimary">@color/teal_700</color>
     <color name="colorPrimaryDark">@color/purple_700</color>
     <color name="colorAccent">@color/purple_200</color>

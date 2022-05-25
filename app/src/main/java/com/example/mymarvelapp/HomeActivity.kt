@@ -9,6 +9,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import com.example.mymarvelapp.adapter.CharacterAdapter
+import com.example.mymarvelapp.databinding.ActivityHomeBinding
+import com.example.mymarvelapp.databinding.LayoutCharacterListItemBinding
 import com.example.mymarvelapp.network.entity.CharacterEntity
 import com.example.mymarvelapp.network.interactor.FetchCharactersInteractor
 import kotlinx.coroutines.*
@@ -19,8 +22,7 @@ class HomeActivity : AppCompatActivity() {
 
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
-    private lateinit var swipeRefresh: SwipeRefreshLayout
-    private lateinit var recyclerView: RecyclerView
+    private lateinit var binding: ActivityHomeBinding
     private lateinit var adapter: CharacterAdapter
     private lateinit var fetchCharactersInteractor: FetchCharactersInteractor
 
@@ -29,21 +31,12 @@ class HomeActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        binding = ActivityHomeBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
         fetchCharactersInteractor = FetchCharactersInteractor()
 
-        setContentView(R.layout.layout_questions_list)
-
-        // init pull-down-to-refresh
-        swipeRefresh = findViewById(R.id.swipeRefresh)
-        swipeRefresh.setOnRefreshListener {
-            fetchQuestions()
-        }
-
-        // init recycler view
-        recyclerView = findViewById(R.id.recycler)
-        recyclerView.layoutManager = LinearLayoutManager(this)
-        adapter = CharacterAdapter()
-        recyclerView.adapter = adapter
+        initViews()
     }
 
     override fun onStart() {
@@ -56,6 +49,16 @@ class HomeActivity : AppCompatActivity() {
     override fun onStop() {
         super.onStop()
         coroutineScope.coroutineContext.cancelChildren()
+    }
+
+    private fun initViews() {
+        binding.swipeRefresh.setOnRefreshListener {
+            fetchQuestions()
+        }
+
+        binding.recycler.layoutManager = LinearLayoutManager(this)
+        adapter = CharacterAdapter()
+        binding.recycler.adapter = adapter
     }
 
     private fun fetchQuestions() {
@@ -83,12 +86,13 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun showProgressIndication() {
-        swipeRefresh.isRefreshing = true
+        binding.loaderLayout.visibility = View.VISIBLE
     }
 
     private fun hideProgressIndication() {
-        if (swipeRefresh.isRefreshing) {
-            swipeRefresh.isRefreshing = false
+        runOnUiThread {
+            binding.swipeRefresh.isRefreshing = false
+            binding.loaderLayout.visibility = View.GONE
         }
     }
 
@@ -100,33 +104,5 @@ class HomeActivity : AppCompatActivity() {
         return BigInteger(1, md.digest(inputHash.toByteArray()))
             .toString(16)
             .padStart(32, '0')
-    }
-
-    class CharacterAdapter : RecyclerView.Adapter<CharacterAdapter.CharacterViewHolder>() {
-
-        private var characterList: List<CharacterEntity> = ArrayList(0)
-
-        inner class CharacterViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-            val title: TextView = view.findViewById(R.id.text)
-        }
-
-        fun bindData(characters: List<CharacterEntity>) {
-            characterList = ArrayList(characters)
-            notifyDataSetChanged()
-        }
-
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CharacterViewHolder {
-            val itemView = LayoutInflater.from(parent.context)
-                .inflate(R.layout.layout_character_list_item, parent, false)
-            return CharacterViewHolder(itemView)
-        }
-
-        override fun onBindViewHolder(holder: CharacterViewHolder, position: Int) {
-            holder.title.text = characterList[position].name
-        }
-
-        override fun getItemCount(): Int {
-            return characterList.size
-        }
     }
 }
