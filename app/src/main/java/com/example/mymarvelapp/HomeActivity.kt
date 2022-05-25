@@ -15,9 +15,6 @@ import kotlinx.coroutines.*
 import java.math.BigInteger
 import java.security.MessageDigest
 
-private const val PUBLIC_KEY = "56648a248c17e14c8b3cf59d293b99b8"
-private const val PRIVATE_KEY = "b5860460de0f24c1191329c107b7f5c3109a1bb2"
-
 class HomeActivity : AppCompatActivity() {
 
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
@@ -98,7 +95,7 @@ class HomeActivity : AppCompatActivity() {
     private fun getTimeStamp() = (System.currentTimeMillis() / 1000).toString()
 
     private fun md5(timeStamp: String): String {
-        val inputHash = timeStamp + PRIVATE_KEY + PUBLIC_KEY
+        val inputHash = timeStamp + BuildConfig.PRIVATE_KEY + BuildConfig.PUBLIC_KEY
         val md = MessageDigest.getInstance("MD5")
         return BigInteger(1, md.digest(inputHash.toByteArray()))
             .toString(16)
