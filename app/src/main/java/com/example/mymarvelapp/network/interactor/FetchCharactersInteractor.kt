@@ -37,24 +37,22 @@ class FetchCharactersInteractor {
         onComplete: () -> Unit,
         onFailure: () -> Unit
     ) {
-        withContext(Dispatchers.IO) {
-            try {
-                val response = marvelAPI.getCharacters(
-                    timeStamp = timeStamp,
-                    apiKey = BuildConfig.PUBLIC_KEY,
-                    hash = hashData
-                )
-                if (response.isSuccessful && response.body()?.data != null) {
-                    onSuccess.invoke(response.body()?.data!!)
-                } else {
-                    onFailure.invoke()
-                }
-            } catch (t: Throwable) {
+        try {
+            val response = marvelAPI.getCharacters(
+                timeStamp = timeStamp,
+                apiKey = BuildConfig.PUBLIC_KEY,
+                hash = hashData
+            )
+            if (response.isSuccessful && response.body()?.data != null) {
+                onSuccess.invoke(response.body()?.data!!)
+            } else {
                 onFailure.invoke()
-                t.printStackTrace()
-            } finally {
-                onComplete.invoke()
             }
+        } catch (t: Throwable) {
+            onFailure.invoke()
+            t.printStackTrace()
+        } finally {
+            onComplete.invoke()
         }
     }
 }
